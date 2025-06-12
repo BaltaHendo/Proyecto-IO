@@ -54,16 +54,16 @@ nx.draw(G, pos, with_labels=True, node_color=["green" if G.nodes[n]['carga'] els
 edge_labels = {(u, v): f"{d['distancia']} km" for u, v, d in G.edges(data=True)}
 nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_color='blue')
 plt.title("Red de rutas con estaciones de carga en Uruguay")
-plt.show()
+#plt.show()
 
 # ---- Algoritmo A* considerando autonomía y carga ----
 import heapq
 
 # Parámetros del auto eléctrico
-AUTONOMIA_KM = 500
-VEL_CARGA_KM_H = 230  # Velocidad de carga en km/h
-CONSUMO_BASE = 1.0  # Consumo del auto eléctrico
-PENALIZACION_VELOCIDAD = 0.03  # penalización por km/h por encima de 80 km/h
+AUTONOMIA_KM = 400
+VEL_CARGA_KM_H = 170  # Velocidad de carga en km/h
+CONSUMO_BASE = 1  # Consumo del auto eléctrico
+PENALIZACION_VELOCIDAD = 0.01  # penalización por km/h por encima de 80 km/h
 
 def estimate_consumption(velocidad_kmh):
     return CONSUMO_BASE + PENALIZACION_VELOCIDAD * max(0, velocidad_kmh - 80)
@@ -107,7 +107,7 @@ def a_estrella_ev(inicio, destino, grafo):
                     camino + [vecino]
                 ))
 
-            if G.nodes[actual]['carga']:
+            if G.nodes[actual]['carga'] and bateria_restante < AUTONOMIA_KM * 0.99:
                 # Simular carga completa
                 energia_faltante = AUTONOMIA_KM - bateria_restante
                 tiempo_carga = energia_faltante / VEL_CARGA_KM_H
@@ -121,8 +121,21 @@ def a_estrella_ev(inicio, destino, grafo):
                         camino + [f"Cargar en {actual}", vecino]
                     ))
 
+                # Opción de carga parcial (solo lo necesario para el siguiente tramo, sin exceder la autonomía máxima)
+                if bateria_restante < consumo_total:
+                    energia_necesaria = consumo_total - bateria_restante
+                    carga_destino = min(AUTONOMIA_KM, bateria_restante + energia_necesaria)
+                    tiempo_carga_parcial = (carga_destino - bateria_restante) / VEL_CARGA_KM_H
+                    heapq.heappush(open_set, (
+                        tiempo_total + tiempo_carga_parcial + tiempo_viaje,
+                        vecino,
+                        carga_destino - consumo_total,
+                        tiempo_total + tiempo_carga_parcial + tiempo_viaje,
+                        camino + [f"Cargar parcialmente en {actual} hasta {round(carga_destino, 2)} km", vecino]
+                    ))
+
     print("No se encontró ruta.")
     return None, float("inf")
 
 # Ejecutar algoritmo
-camino, tiempo = a_estrella_ev("Salto", "Maldonado", G)
+camino, tiempo = a_estrella_ev("Montevideo", "Salto", G)
