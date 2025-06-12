@@ -10,7 +10,16 @@ nodos = {
     "Maldonado": {"pos": (-54.9586, -34.9081), "carga": True},
     "Punta del Este": {"pos": (-54.9430, -34.9624), "carga": False},
     "Colonia": {"pos": (-57.8445, -34.4624), "carga": True},
-    "Rocha": {"pos": (-54.3375, -34.4833), "carga": False}
+    "Rocha": {"pos": (-54.3375, -34.4833), "carga": False},
+    "Paysandú": {"pos": (-58.0756, -32.3214), "carga": True},
+    "Salto": {"pos": (-57.9601, -31.3895), "carga": True},
+    "Rivera": {"pos": (-55.5333, -30.9058), "carga": False},
+    "Tacuarembó": {"pos": (-55.9964, -31.7131), "carga": False},
+    "Florida": {"pos": (-56.2150, -34.0954), "carga": False},
+    "Durazno": {"pos": (-56.5237, -33.3796), "carga": False},
+    "Treinta y Tres": {"pos": (-54.3030, -33.2333), "carga": False},
+    "Artigas": {"pos": (-56.4678, -30.4018), "carga": False},
+    "Canelones": {"pos": (-55.7381, -34.5228), "carga": False}
 }
 
 # Agregar nodos al grafo
@@ -23,6 +32,17 @@ G.add_edge("Maldonado", "Punta del Este", distancia=10, velocidad=60)
 G.add_edge("Montevideo", "Colonia", distancia=180, velocidad=100)
 G.add_edge("Colonia", "Rocha", distancia=300, velocidad=100)
 G.add_edge("Maldonado", "Rocha", distancia=90, velocidad=80)
+G.add_edge("Montevideo", "Canelones", distancia=50, velocidad=90)
+G.add_edge("Canelones", "Florida", distancia=70, velocidad=90)
+G.add_edge("Florida", "Durazno", distancia=120, velocidad=100)
+G.add_edge("Durazno", "Tacuarembó", distancia=130, velocidad=100)
+G.add_edge("Tacuarembó", "Rivera", distancia=115, velocidad=100)
+G.add_edge("Durazno", "Paysandú", distancia=190, velocidad=100)
+G.add_edge("Paysandú", "Salto", distancia=120, velocidad=90)
+G.add_edge("Durazno", "Treinta y Tres", distancia=170, velocidad=80)
+G.add_edge("Treinta y Tres", "Rocha", distancia=110, velocidad=80)
+G.add_edge("Montevideo", "Paysandú", distancia=370, velocidad=110)
+G.add_edge("Salto", "Artigas", distancia=200, velocidad=90)
 
 # Visualizar el grafo
 pos = nx.get_node_attributes(G, 'pos')
