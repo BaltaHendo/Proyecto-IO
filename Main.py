@@ -1,10 +1,11 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 
-# Crear el grafo dirigido
-G = nx.DiGraph()
+# Crear el grafo no dirigido
+G = nx.Graph()
 
 # Añadir nodos: (nombre, coordenadas y si tiene estación de carga)
+# Las coordenadas solo son para visualizar el grafo, no son necesarias para el algoritmo.
 nodos = {
     "Montevideo": {"pos": (-56.1645, -34.9011), "carga": True},
     "Maldonado": {"pos": (-54.9586, -34.9081), "carga": True},
@@ -15,7 +16,7 @@ nodos = {
     "Salto": {"pos": (-57.9601, -31.3895), "carga": True},
     "Rivera": {"pos": (-55.5333, -30.9058), "carga": False},
     "Tacuarembó": {"pos": (-55.9964, -31.7131), "carga": False},
-    "Florida": {"pos": (-56.2150, -34.0954), "carga": False},
+    "Florida": {"pos": (-56.2150, -34.0954), "carga": True},
     "Durazno": {"pos": (-56.5237, -33.3796), "carga": False},
     "Treinta y Tres": {"pos": (-54.3030, -33.2333), "carga": False},
     "Artigas": {"pos": (-56.4678, -30.4018), "carga": False},
@@ -59,10 +60,10 @@ plt.show()
 import heapq
 
 # Parámetros del auto eléctrico
-AUTONOMIA_KM = 300
-VEL_CARGA_KM_H = 300  # km/h de carga rápida (simulado)
-CONSUMO_BASE = 1.0  # consumo base por km
-PENALIZACION_VELOCIDAD = 0.005  # penalización por km/h por encima de 80 km/h
+AUTONOMIA_KM = 500
+VEL_CARGA_KM_H = 230  # Velocidad de carga en km/h
+CONSUMO_BASE = 1.0  # Consumo del auto eléctrico
+PENALIZACION_VELOCIDAD = 0.03  # penalización por km/h por encima de 80 km/h
 
 def estimate_consumption(velocidad_kmh):
     return CONSUMO_BASE + PENALIZACION_VELOCIDAD * max(0, velocidad_kmh - 80)
@@ -124,4 +125,4 @@ def a_estrella_ev(inicio, destino, grafo):
     return None, float("inf")
 
 # Ejecutar algoritmo
-camino, tiempo = a_estrella_ev("Montevideo", "Rocha", G)
+camino, tiempo = a_estrella_ev("Salto", "Maldonado", G)
