@@ -18,14 +18,14 @@ nodos = {
     "Lavalleja": {"pos": (-55.28, -34.18), "carga": False},
     "Maldonado": {"pos": (-55.33, -35.08), "carga": True},
     "Montevideo": {"pos": (-56.393, -35.1), "carga": True},
-    "Paysandú": {"pos": (-57.4, -32.38), "carga": True},
+    "Paysandu": {"pos": (-57.4, -32.38), "carga": True},
     "Rivera": {"pos": (-55.5333, -31.797), "carga": False},
-    "Río Negro": {"pos": (-57.450, -33.04), "carga": False},
+    "Rio Negro": {"pos": (-57.450, -33.04), "carga": False},
     "Rocha": {"pos": (-54.3375, -34.4833), "carga": False},
     "Salto": {"pos": (-57.19, -31.582), "carga": True},
-    "San José": {"pos": (-56.82, -34.6), "carga": False},
+    "San Jose": {"pos": (-56.82, -34.6), "carga": False},
     "Soriano": {"pos": (-57.77, -33.75), "carga": False},
-    "Tacuarembó": {"pos": (-55.9, -32.4), "carga": False},
+    "Tacuarembo": {"pos": (-55.9, -32.4), "carga": False},
     "Treinta y Tres": {"pos": (-54.3030, -33.2333), "carga": False}
 }
 
@@ -34,19 +34,36 @@ for ciudad, data in nodos.items():
     G.add_node(ciudad, pos=data["pos"], carga=data["carga"])
 
 # Agregar aristas con distancia y velocidad
-G.add_edge("Montevideo", "Maldonado", distancia=130, velocidad=90)
-G.add_edge("Montevideo", "Colonia", distancia=180, velocidad=100)
-G.add_edge("Maldonado", "Rocha", distancia=90, velocidad=80)
-G.add_edge("Montevideo", "Canelones", distancia=50, velocidad=90)
-G.add_edge("Canelones", "Florida", distancia=70, velocidad=90)
-G.add_edge("Florida", "Durazno", distancia=120, velocidad=100)
-G.add_edge("Durazno", "Tacuarembó", distancia=130, velocidad=100)
-G.add_edge("Tacuarembó", "Rivera", distancia=115, velocidad=100)
-G.add_edge("Durazno", "Paysandú", distancia=190, velocidad=100)
-G.add_edge("Paysandú", "Salto", distancia=120, velocidad=90)
-G.add_edge("Durazno", "Treinta y Tres", distancia=170, velocidad=80)
-G.add_edge("Treinta y Tres", "Rocha", distancia=110, velocidad=80)
-G.add_edge("Salto", "Artigas", distancia=200, velocidad=90)
+G.add_edge("Artigas", "Salto", distancia=120, velocidad=110)
+G.add_edge("Canelones", "Florida", distancia=100, velocidad=110)
+G.add_edge("Canelones", "Lavalleja", distancia=120, velocidad=110)
+G.add_edge("Canelones", "Maldonado", distancia=150, velocidad=110)
+G.add_edge("Colonia", "San Jose", distancia=120, velocidad=110)
+G.add_edge("Cerro Largo", "Rivera", distancia=180, velocidad=110)
+G.add_edge("Cerro Largo", "Tacuarembo", distancia=160, velocidad=110)
+G.add_edge("Cerro Largo", "Treinta y Tres", distancia=120, velocidad=110)
+G.add_edge("Durazno", "Rio Negro", distancia=100, velocidad=110)
+G.add_edge("Durazno", "Tacuarembo", distancia=200, velocidad=110)
+G.add_edge("Durazno", "Treinta y Tres", distancia=220, velocidad=110)
+G.add_edge("Flores", "Florida", distancia=90, velocidad=110)
+G.add_edge("Flores", "Soriano", distancia=90, velocidad=110)
+G.add_edge("Florida", "Durazno", distancia=100, velocidad=110)
+G.add_edge("Florida", "Lavalleja", distancia=100, velocidad=110)
+G.add_edge("Lavalleja", "Maldonado", distancia=140, velocidad=110)
+G.add_edge("Lavalleja", "Treinta y Tres", distancia=150, velocidad=110)
+G.add_edge("Maldonado", "Rocha", distancia=120, velocidad=110)
+G.add_edge("Montevideo", "Canelones", distancia=50, velocidad=110)
+G.add_edge("Montevideo", "Maldonado", distancia=130, velocidad=110)
+G.add_edge("Montevideo", "San Jose", distancia=110, velocidad=110)
+G.add_edge("Paysandu", "Tacuarembo", distancia=150, velocidad=110)
+G.add_edge("Rio Negro", "Paysandu", distancia=110, velocidad=110)
+G.add_edge("Rio Negro", "Soriano", distancia=100, velocidad=110)
+G.add_edge("Rivera", "Artigas", distancia=140, velocidad=110)
+G.add_edge("Salto", "Paysandu", distancia=100, velocidad=110)
+G.add_edge("Salto", "Rivera", distancia=200, velocidad=110)
+G.add_edge("Soriano", "Colonia", distancia=120, velocidad=110)
+G.add_edge("Treinta y Tres", "Rocha", distancia=160, velocidad=110)
+
 
 # Visualizar el grafo
 
