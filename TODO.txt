@@ -1,0 +1,5 @@
+Implementar una llegada a destino con 20%
+Para informe de sensibilidad:
+    Cambiar nodos con cargadores
+    Cambiar parámetros del auto
+    Cambiar estado de la batería al salir
