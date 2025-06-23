@@ -75,7 +75,7 @@ pos = nx.get_node_attributes(G, 'pos')
 import heapq
 
 # Parámetros del auto eléctrico
-AUTONOMIA_KM = 500
+AUTONOMIA_KM = 400
 VEL_CARGA_KM_H = 170  # Velocidad de carga en km/h
 PENALIZACION_VELOCIDAD = 0.02  # Penalización por km/h por encima de 80 km/h (0.02 = 2% más de consumo por km/h extra)
 PENALIZACION_CARGA = 10  # Minutos agregados por cada parada a cargar
@@ -131,7 +131,7 @@ def a_estrella_ev(inicio, destino, grafo):
             carga_h = int(carga_total)
             carga_m = int((carga_total - carga_h) * 60)
             print(f"  Tiempo de carga total: {carga_h:02}:{carga_m:02} h")
-            return camino, tiempo_real + carga_total
+            return camino, tiempo_real + carga_total, historial_bateria
 
         # Explorar vecinos
         for vecino in grafo[actual]:
@@ -143,16 +143,18 @@ def a_estrella_ev(inicio, destino, grafo):
             tiempo_viaje = distancia / velocidad
 
             # Si puede llegar con la batería actual
-            if bateria_restante - consumo_total >= MARGEN_AUTONOMIA * AUTONOMIA_KM:
-                heapq.heappush(open_set, (
-                    tiempo_real + tiempo_viaje + carga_total,
-                    vecino,
-                    bateria_restante - consumo_total,
-                    tiempo_real + tiempo_viaje,
-                    carga_total,
-                    camino + [vecino],
-                    historial_bateria + [bateria_restante - consumo_total]
-                ))
+            if bateria_restante - consumo_total >= 0:
+                autonomia_restante = bateria_restante - consumo_total
+                if autonomia_restante >= MARGEN_AUTONOMIA * AUTONOMIA_KM:
+                    heapq.heappush(open_set, (
+                        tiempo_real + tiempo_viaje + carga_total,
+                        vecino,
+                        autonomia_restante,
+                        tiempo_real + tiempo_viaje,
+                        carga_total,
+                        camino + [vecino],
+                        historial_bateria + [autonomia_restante]
+                    ))
 
             # Evaluar cargar si hay estación
             if G.nodes[actual]['carga']:
@@ -169,23 +171,39 @@ def a_estrella_ev(inicio, destino, grafo):
                             autonomia_restante,
                             tiempo_real + tiempo_viaje,
                             carga_total + tiempo_carga,
-                            camino + [f"Cargar parcialmente en {actual} hasta {round(nueva_bateria, 2)} km", vecino],
+                            camino + [f"Cargar parcialmente en {actual} hasta {round(nueva_bateria, 2)} km ({round(tiempo_carga, 2)} h)", vecino],
                             historial_bateria + [nueva_bateria, autonomia_restante]
                         ))
 
-                # También considerar carga completa
+                # Considerar carga parcial hasta justo lo necesario
+                energia_requerida_margen = consumo_total + MARGEN_AUTONOMIA * AUTONOMIA_KM - bateria_restante
+                if energia_requerida_margen > 0 and energia_requerida_margen <= AUTONOMIA_KM - bateria_restante:
+                    nueva_bateria_parcial = bateria_restante + energia_requerida_margen
+                    tiempo_carga_parcial = energia_requerida_margen / VEL_CARGA_KM_H + PENALIZACION_CARGA / 60
+                    autonomia_restante_parcial = nueva_bateria_parcial - consumo_total
+                    heapq.heappush(open_set, (
+                        tiempo_real + tiempo_viaje + carga_total + tiempo_carga_parcial,
+                        vecino,
+                        autonomia_restante_parcial,
+                        tiempo_real + tiempo_viaje,
+                        carga_total + tiempo_carga_parcial,
+                        camino + [f"Cargar parcialmente en {actual} hasta {round(nueva_bateria_parcial, 2)} km ({round(tiempo_carga_parcial, 2)} h)", vecino],
+                        historial_bateria + [nueva_bateria_parcial, autonomia_restante_parcial]
+                    ))
+
+                # Solo considerar carga completa si la carga parcial no es suficiente
                 energia_faltante = AUTONOMIA_KM - bateria_restante
-                tiempo_carga_full = energia_faltante / VEL_CARGA_KM_H + PENALIZACION_CARGA / 60
                 nueva_bateria_full = AUTONOMIA_KM
                 autonomia_restante_full = nueva_bateria_full - consumo_total
-                if autonomia_restante_full >= MARGEN_AUTONOMIA * AUTONOMIA_KM:
+                if autonomia_restante_full >= MARGEN_AUTONOMIA * AUTONOMIA_KM and (energia_requerida_margen <= 0 or energia_requerida_margen > energia_faltante):
+                    tiempo_carga_full = energia_faltante / VEL_CARGA_KM_H + PENALIZACION_CARGA / 60
                     heapq.heappush(open_set, (
                         tiempo_real + tiempo_viaje + carga_total + tiempo_carga_full,
                         vecino,
                         autonomia_restante_full,
                         tiempo_real + tiempo_viaje,
                         carga_total + tiempo_carga_full,
-                        camino + [f"Cargar en {actual} desde {round(bateria_restante, 2)} km hasta {nueva_bateria_full} km", vecino],
+                        camino + [f"Cargar en {actual} desde {round(bateria_restante, 2)} km hasta {nueva_bateria_full} km ({round(tiempo_carga_full, 2)} h)", vecino],
                         historial_bateria + [nueva_bateria_full, autonomia_restante_full]
                     ))
 
@@ -193,7 +211,7 @@ def a_estrella_ev(inicio, destino, grafo):
     return None, float("inf")
 
 # Ejecutar algoritmo
-camino, tiempo = a_estrella_ev("Artigas", "Maldonado", G)
+camino, tiempo, historial_bateria = a_estrella_ev("Artigas", "Maldonado", G)
 
 # Mostrar el mapa de fondo y grafo con ruta calculada
 fig, ax = plt.subplots(figsize=(10, 6))
@@ -225,28 +243,45 @@ if camino:
     # Mostrar tiempos de carga en los nodos del camino final
     from collections import defaultdict
 
+    # historial_bateria ya proviene de a_estrella_ev
+
     # Registrar y mostrar los tiempos de carga en los nodos
     tiempos_carga_por_nodo = defaultdict(float)
 
-    i = 0
-    while i < len(camino) - 1:
-        paso = camino[i]
-        siguiente = camino[i + 1]
+    total_carga_mapa = 0
+
+    indice_bateria = 0
+    tiempos_carga_por_nodo = defaultdict(float)
+    total_carga_mapa = 0
+
+    for i, paso in enumerate(camino):
         if paso.startswith("Cargar"):
             # Extraer el nombre del nodo correctamente
             if " en " in paso:
-                nodo = paso.split(" en ")[1].split(" desde")[0].strip()
+                contenido = paso.split(" en ")[1]
+                if " desde" in contenido:
+                    nodo = contenido.split(" desde")[0].strip()
+                elif " hasta" in contenido:
+                    nodo = contenido.split(" hasta")[0].strip()
+                else:
+                    nodo = contenido.strip()
             else:
-                nodo = siguiente  # fallback si el formato cambia
-            if "hasta" in paso and "desde" in paso:
-                km_inicio = float(paso.split("desde ")[-1].split(" km")[0])
-                km_final = float(paso.split("hasta ")[-1].split(" km")[0])
-                energia_agregada = km_final - km_inicio
+                nodo = camino[i + 1] if i + 1 < len(camino) else "Desconocido"
+
+            if "(" in paso and "h)" in paso:
+                try:
+                    tiempo_str = paso.split("(")[-1].replace("h)", "").strip()
+                    tiempo_carga = float(tiempo_str)
+                except:
+                    tiempo_carga = 0
             else:
-                energia_agregada = AUTONOMIA_KM  # fallback por si falta información
-            tiempo_carga = energia_agregada / VEL_CARGA_KM_H
+                tiempo_carga = 0
+
             tiempos_carga_por_nodo[nodo] += tiempo_carga
-        i += 1
+            total_carga_mapa += tiempo_carga
+        else:
+            if indice_bateria < len(historial_bateria):
+                indice_bateria += 1
 
     # Mostrar los tiempos de carga como etiquetas adicionales
     for nodo, tiempo in tiempos_carga_por_nodo.items():
@@ -254,9 +289,13 @@ if camino:
             print(f"[DEBUG] Nodo no encontrado en posiciones: {nodo}")
         x, y = pos[nodo]
         horas = int(tiempo)
-        minutos = int((tiempo - horas) * 60)
+        minutos = max(0, int(round((tiempo - horas) * 60)))
         texto = f"{horas}h {minutos}m" if horas > 0 else f"{minutos} min"
         ax.text(x, y + 0.2, texto, fontsize=8, color="black", ha='center')
+
+    horas = int(total_carga_mapa)
+    minutos = int((total_carga_mapa - horas) * 60)
+    print(f"  Tiempo de carga total mostrado en el mapa: {horas:02}:{minutos:02} h")
 
 plt.title("Ruta calculada")
 plt.show()
