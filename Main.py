@@ -2,6 +2,8 @@ import matplotlib.image as mpimg
 import networkx as nx
 import matplotlib.pyplot as plt
 
+
+
 # Crear el grafo no dirigido
 G = nx.Graph()
 
@@ -78,13 +80,25 @@ VEL_CARGA_KM_H = 170  # Velocidad de carga en km/h
 PENALIZACION_VELOCIDAD = 0.02  # Penalización por km/h por encima de 80 km/h (0.02 = 2% más de consumo por km/h extra)
 PENALIZACION_CARGA = 10  # Minutos agregados por cada parada a cargar
 MARGEN_AUTONOMIA = 0.1  # Porcentaje mínimo de autonomía para llegar a cada nodo (0.1 = 10%)
+PORCENTAJE_CARGA_INICIAL = 1  # Porcentaje de carga inicial del vehículo (1 = 100% de batería)
 
 def estimate_consumption(velocidad_kmh):
     return 1 + PENALIZACION_VELOCIDAD * max(0, velocidad_kmh - 80)
 
 def a_estrella_ev(inicio, destino, grafo):
     open_set = []
-    heapq.heappush(open_set, (0, inicio, AUTONOMIA_KM, 0, 0, [inicio], [AUTONOMIA_KM]))  # (costo_estimado, nodo, bateria_restante, tiempo_real, carga_total, camino, historial_bateria)
+    heapq.heappush(
+        open_set,
+        (
+            0,
+            inicio,
+            AUTONOMIA_KM * PORCENTAJE_CARGA_INICIAL,
+            0,
+            0,
+            [inicio],
+            [AUTONOMIA_KM * PORCENTAJE_CARGA_INICIAL],
+        ),
+    )  # (costo_estimado, nodo, bateria_restante, tiempo_real, carga_total, camino, historial_bateria)
 
     visitado = {}
 
