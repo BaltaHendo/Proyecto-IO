@@ -9,23 +9,23 @@ G = nx.Graph()
 # Las coordenadas solo son para visualizar el grafo, no son necesarias para el algoritmo.
 nodos = {
     "Artigas": {"pos": (-57.130, -30.8), "carga": True},
-    "Canelones": {"pos": (-56.085, -34.777), "carga": False},
+    "Canelones": {"pos": (-56.085, -34.777), "carga": True},
     "Cerro Largo": {"pos": (-54.72, -32.67), "carga": True},
-    "Colonia": {"pos": (-57.8445, -34.4624), "carga": False},
+    "Colonia": {"pos": (-57.8445, -34.4624), "carga": True},
     "Durazno": {"pos": (-56.5237, -33.3796), "carga": True},
-    "Flores": {"pos": (-56.93, -33.865), "carga": False},
-    "Florida": {"pos": (-56.2150, -34.0954), "carga": False},
-    "Lavalleja": {"pos": (-55.28, -34.18), "carga": False},
-    "Maldonado": {"pos": (-55.33, -35.08), "carga": False},
-    "Montevideo": {"pos": (-56.393, -35.1), "carga": False},
-    "Paysandu": {"pos": (-57.4, -32.38), "carga": False},
-    "Rivera": {"pos": (-55.5333, -31.797), "carga": False},
+    "Flores": {"pos": (-56.93, -33.865), "carga": True},
+    "Florida": {"pos": (-56.2150, -34.0954), "carga": True},
+    "Lavalleja": {"pos": (-55.28, -34.18), "carga": True},
+    "Maldonado": {"pos": (-55.33, -35.08), "carga": True},
+    "Montevideo": {"pos": (-56.393, -35.1), "carga": True},
+    "Paysandu": {"pos": (-57.4, -32.38), "carga": True},
+    "Rivera": {"pos": (-55.5333, -31.797), "carga": True},
     "Rio Negro": {"pos": (-57.450, -33.04), "carga": True},
-    "Rocha": {"pos": (-54.3375, -34.4833), "carga": False},
+    "Rocha": {"pos": (-54.3375, -34.4833), "carga": True},
     "Salto": {"pos": (-57.19, -31.582), "carga": True},
-    "San Jose": {"pos": (-56.82, -34.6), "carga": False},
+    "San Jose": {"pos": (-56.82, -34.6), "carga": True},
     "Soriano": {"pos": (-57.77, -33.75), "carga": True},
-    "Tacuarembo": {"pos": (-55.9, -32.4), "carga": False},
+    "Tacuarembo": {"pos": (-55.9, -32.4), "carga": True},
     "Treinta y Tres": {"pos": (-54.3030, -33.2333), "carga": True}
 }
 
@@ -91,11 +91,13 @@ def a_estrella_ev(inicio, destino, grafo):
     while open_set:
         _, actual, bateria_restante, tiempo_real, carga_total, camino, historial_bateria = heapq.heappop(open_set)
 
+        # Si el nodo ya fue visitado con mejor tiempo, saltar
         estado_clave = (actual, round(bateria_restante))
         if estado_clave in visitado and visitado[estado_clave] <= tiempo_real:
             continue
         visitado[estado_clave] = tiempo_real
 
+        # Si llegamos al destino
         if actual == destino:
             print(f"Ruta encontrada:")
             for i, paso in enumerate(camino):
@@ -108,6 +110,7 @@ def a_estrella_ev(inicio, destino, grafo):
             print(f"Tiempo total estimado: {total_horas:02}:{total_minutos:02} h")
             print(f"Batería restante al llegar a destino: {round(bateria_restante, 2)} km")
 
+            # Calcular tiempos de viaje y carga
             viaje_h = int(tiempo_real)
             viaje_m = int((tiempo_real - viaje_h) * 60)
             print(f"  Tiempo de viaje puro: {viaje_h:02}:{viaje_m:02} h")
@@ -116,6 +119,7 @@ def a_estrella_ev(inicio, destino, grafo):
             print(f"  Tiempo de carga total: {carga_h:02}:{carga_m:02} h")
             return camino, tiempo_real + carga_total
 
+        # Explorar vecinos
         for vecino in grafo[actual]:
             datos = grafo[actual][vecino]
             distancia = datos['distancia']
